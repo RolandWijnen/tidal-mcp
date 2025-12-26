@@ -4,6 +4,7 @@ import atexit
 import threading
 
 _flask_thread = None
+_flask_lock = threading.Lock()
 
 from typing import Optional, List
 
@@ -24,38 +25,31 @@ mcp = FastMCP("TIDAL MCP")
 
 @mcp.tool()
 def tidal_login() -> dict:
-    """
-    Authenticate with TIDAL through browser login flow.
-    """
     global _flask_thread
 
     try:
-        # Start Flask ONLY if not already running
-        if _flask_thread is None or not _flask_thread.is_alive():
-            _flask_thread = threading.Thread(
-                target=start_flask_app,
-                daemon=True
-            )
-            _flask_thread.start()
+        with _flask_lock:
+            if _flask_thread is None or not _flask_thread.is_alive():
+                _flask_thread = threading.Thread(
+                    target=start_flask_app,
+                    daemon=True
+                )
+                _flask_thread.start()
 
         return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"Please open {FLASK_APP_URL}/login to authenticate with TIDAL."
-                }
-            ],
+            "content": [{
+                "type": "text",
+                "text": f"Please open {FLASK_APP_URL}/login to authenticate with TIDAL."
+            }],
             "isError": False
         }
 
     except Exception as e:
         return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"Failed to start TIDAL authentication service: {str(e)}"
-                }
-            ],
+            "content": [{
+                "type": "text",
+                "text": f"Failed to start TIDAL authentication service: {str(e)}"
+            }],
             "isError": True
         }
     
