@@ -5,8 +5,8 @@ import functools
 from flask import Flask, request, jsonify
 from pathlib import Path
 
-from browser_session import BrowserSession
-from utils import format_track_data, bound_limit
+from .browser_session import BrowserSession
+from .utils import format_track_data, bound_limit
 
 app = Flask(__name__)
 token_path = os.path.join(tempfile.gettempdir(), 'tidal-session-oauth.json')
@@ -386,7 +386,7 @@ if __name__ == '__main__':
     import os
     
     # Get port from environment variable or use default
-    port = int(os.environ.get("TIDAL_MCP_PORT", 5050))
+    port = int(os.environ.get("TIDAL_FLASK_PORT", 5050))
     
     print(f"Starting Flask app on port {port}")
     app.run(debug=True, port=port)
