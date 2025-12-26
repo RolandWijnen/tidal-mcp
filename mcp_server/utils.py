@@ -11,6 +11,10 @@ FLASK_PORT = int(os.environ.get("TIDAL_MCP_PORT", DEFAULT_PORT))
 # Define the base URL for your Flask app using the configurable port
 FLASK_APP_URL = f"http://127.0.0.1:{FLASK_PORT}"
 
+# Define login URL (Docker host)
+EXTERNAL_HOST = os.environ.get("TIDAL_EXTERNAL_HOST", "localhost")
+FLASK_EXTERNAL_URL = f"http://{EXTERNAL_HOST}:{FLASK_PORT}"
+
 # Define the path to the Flask app dynamically
 CURRENT_DIR = pathlib.Path(__file__).parent.absolute()
 FLASK_APP_PATH = os.path.join(CURRENT_DIR, "..", "tidal_api", "app.py")
