@@ -32,7 +32,7 @@ flask_process = None
 def start_flask_app():
     print(f"Starting TIDAL Flask app...", file=sys.stderr)
 
-    from app import app  # import your Flask app object
+    from tidal_api.app import app  # import your Flask app object
 
     app.run(
         host="0.0.0.0",
