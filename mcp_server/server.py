@@ -1,6 +1,9 @@
 from mcp.server.fastmcp import FastMCP
 import requests
 import atexit
+import threading
+
+_flask_thread = None
 
 from typing import Optional, List
 
@@ -13,38 +16,47 @@ print(f"TIDAL MCP starting on port {FLASK_PORT}")
 mcp = FastMCP("TIDAL MCP")
 
 # Start the Flask app when this script is loaded
-print("MCP server module is being loaded. Starting Flask app...")
-start_flask_app()
+#print("MCP server module is being loaded. Starting Flask app...")
+#start_flask_app()
 
 # Register the shutdown function to be called when the MCP server exits
-atexit.register(shutdown_flask_app)
+#atexit.register(shutdown_flask_app)
 
 @mcp.tool()
 def tidal_login() -> dict:
     """
     Authenticate with TIDAL through browser login flow.
-    This will open a browser window for the user to log in to their TIDAL account.
-    
-    Returns:
-        A dictionary containing authentication status and user information if successful
     """
+    global _flask_thread
+
     try:
-        # Call your Flask endpoint for TIDAL authentication
-        response = requests.get(f"{FLASK_APP_URL}/api/auth/login")
-        
-        # Check if the request was successful
-        if response.status_code == 200:
-            return response.json()
-        else:
-            error_data = response.json()
-            return {
-                "status": "error",
-                "message": f"Authentication failed: {error_data.get('message', 'Unknown error')}"
-            }
+        # Start Flask ONLY if not already running
+        if _flask_thread is None or not _flask_thread.is_alive():
+            _flask_thread = threading.Thread(
+                target=start_flask_app,
+                daemon=True
+            )
+            _flask_thread.start()
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Please open {FLASK_APP_URL}/login to authenticate with TIDAL."
+                }
+            ],
+            "isError": False
+        }
+
     except Exception as e:
         return {
-            "status": "error",
-            "message": f"Failed to connect to TIDAL authentication service: {str(e)}"
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Failed to start TIDAL authentication service: {str(e)}"
+                }
+            ],
+            "isError": True
         }
     
 @mcp.tool()
@@ -605,3 +617,8 @@ def delete_tidal_playlist(playlist_id: str) -> dict:
             "status": "error",
             "message": f"Failed to connect to TIDAL playlist service: {str(e)}"
         }
+
+def _cleanup():
+    shutdown_flask_app()
+
+atexit.register(_cleanup)
