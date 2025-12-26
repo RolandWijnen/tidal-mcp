@@ -50,8 +50,12 @@ def login():
     
     # Try to authenticate (will open browser if needed)
     try:
-        login_success = session.login_session_file_auto(SESSION_FILE, fn_print=log_message)
-        
+        login_success = session.login_session_file_auto(
+            SESSION_FILE,
+            do_pkce=True,
+            fn_print=log_message
+        )
+
         if login_success:
             return jsonify({
                 "status": "success", 
