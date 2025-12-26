@@ -11,7 +11,7 @@ from typing import Optional, List
 from utils import start_flask_app, shutdown_flask_app, FLASK_APP_URL, FLASK_PORT, FLASK_EXTERNAL_URL
 
 # Print the port being used for debugging
-print(f"TIDAL MCP starting on port {FLASK_PORT}")
+print(f"TIDAL MCP starting...")
 
 # Create an MCP server
 mcp = FastMCP("TIDAL MCP")
