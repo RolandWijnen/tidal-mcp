@@ -2,6 +2,7 @@ import subprocess
 import os
 import pathlib
 import shutil
+import sys
 
 # Define a configurable port with a default that's less likely to conflict
 DEFAULT_PORT = 5050
@@ -49,7 +50,7 @@ def find_uv_executable():
 flask_process = None
 
 def start_flask_app():
-    print("Starting TIDAL Flask app...")
+    print(f"Starting TIDAL Flask app...", file=sys.stderr)
 
     from app import app  # import your Flask app object
 
@@ -60,14 +61,15 @@ def start_flask_app():
         use_reloader=False
     )
 
-    print("TIDAL Flask app exited")
+    print(f"TIDAL Flask app exited", file=sys.stderr)
 
 def shutdown_flask_app():
     """Shutdown the Flask app subprocess when the MCP server exits"""
     global flask_process
     
     if flask_process:
-        print("Shutting down TIDAL Flask app...")
+        print(f"Shutting down TIDAL Flask app...", file=sys.stderr)
+
         # Try to terminate gracefully first
         flask_process.terminate()
         try:
@@ -76,4 +78,4 @@ def shutdown_flask_app():
         except subprocess.TimeoutExpired:
             # If it doesn't terminate in time, force kill it
             flask_process.kill()
-        print("TIDAL Flask app shutdown complete")
+        print(f"TIDAL Flask app shutdown complete", file=sys.stderr)
