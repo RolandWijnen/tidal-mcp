@@ -616,3 +616,6 @@ def _cleanup():
     shutdown_flask_app()
 
 atexit.register(_cleanup)
+
+if __name__ == "__main__":
+    mcp.run()
