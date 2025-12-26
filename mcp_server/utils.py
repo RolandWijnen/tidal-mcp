@@ -49,31 +49,18 @@ def find_uv_executable():
 flask_process = None
 
 def start_flask_app():
-    """Start the Flask app as a subprocess"""
-    global flask_process
-    
     print("Starting TIDAL Flask app...")
-    
-    # Find uv executable
-    uv_executable = find_uv_executable()
-    print(f"Using uv executable: {uv_executable}")
-    
-    # Start the Flask app using uv
-    flask_process = subprocess.Popen([
-        uv_executable, "run",
-        "--with", "tidalapi",
-        "--with", "flask",
-        "--with", "requests",
-        "python", FLASK_APP_PATH
-    ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    
-    # Optional: Read a few lines to ensure the app starts properly
-    for _ in range(5):  # Read first 5 lines of output
-        line = flask_process.stdout.readline()
-        if line:
-            print(f"Flask app: {line.decode().strip()}")
-    
-    print("TIDAL Flask app started")
+
+    from app import app  # import your Flask app object
+
+    app.run(
+        host="0.0.0.0",
+        port=FLASK_PORT,
+        debug=False,
+        use_reloader=False
+    )
+
+    print("TIDAL Flask app exited")
 
 def shutdown_flask_app():
     """Shutdown the Flask app subprocess when the MCP server exits"""
