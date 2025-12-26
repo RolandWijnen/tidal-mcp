@@ -6,7 +6,7 @@ import sys
 
 # Define a configurable port with a default that's less likely to conflict
 DEFAULT_PORT = 5050
-FLASK_PORT = int(os.environ.get("TIDAL_MCP_PORT", DEFAULT_PORT))
+FLASK_PORT = int(os.environ.get("TIDAL_FLASK_PORT", DEFAULT_PORT))
 
 # Define the base URL for your Flask app using the configurable port
 FLASK_APP_URL = f"http://127.0.0.1:{FLASK_PORT}"
