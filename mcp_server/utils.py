@@ -4,6 +4,12 @@ import pathlib
 import shutil
 import sys
 
+# ------------------------------------------------------------------
+# Path setup: ensure repo root is on PYTHONPATH
+# ------------------------------------------------------------------
+ROOT_DIR = pathlib.Path(__file__).parent.parent.resolve()
+sys.path.insert(0, str(ROOT_DIR))
+
 # Define a configurable port with a default that's less likely to conflict
 DEFAULT_PORT = 5050
 FLASK_PORT = int(os.environ.get("TIDAL_FLASK_PORT", DEFAULT_PORT))
