@@ -39,7 +39,7 @@ def tidal_login() -> dict:
         return {
             "content": [{
                 "type": "text",
-                "text": f"Please open {FLASK_APP_URL}/login to authenticate with TIDAL."
+                "text": f"Please open {FLASK_EXTERNAL_URL}/login to authenticate with TIDAL."
             }],
             "isError": False
         }
