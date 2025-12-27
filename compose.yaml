@@ -1,0 +1,42 @@
+services:
+  tidal-mcp:
+    build: .
+    container_name: tidal-mcp
+    profiles:
+      - mcp
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./tidal-data:/root/.config  # persist any config/cache here
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    networks:
+      - mcpnet
+    ports:
+      - "6015:6015"  # MCP Supergateway port
+    depends_on:
+      - tidal-auth
+
+  tidal-auth:
+    build: .
+    container_name: tidal-auth
+    profiles:
+      - auth
+    environment:
+      - TIDAL_AUTH_METHOD=pkce
+    volumes:
+      - ./tidal-data/config:/root/.config
+      - ./tidal-data/cache:/root/.cache
+    entrypoint:
+      - python
+      - /app/auth.py
+    stdin_open: true
+    tty: true
+    restart: "no"
+    networks:
+      - mcpnet
+
+networks:
+  mcpnet:
+    external: true
