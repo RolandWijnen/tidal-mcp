@@ -18,7 +18,7 @@ def get_session() -> tidalapi.Session:
             if not session.check_login():
                 raise RuntimeError(
                     "TIDAL session not authenticated. "
-                    "Run tidal-auth first."
+                    "Run `docker compose --profile auth run --rm tidal-auth` first."
                 )
 
             _session = session
