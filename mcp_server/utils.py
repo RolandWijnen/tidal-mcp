@@ -29,8 +29,18 @@ FLASK_APP_PATH = os.path.normpath(FLASK_APP_PATH)  # Normalize the path
 # Global variable to hold the Flask app process
 flask_process = None
 
+_flask_started = False
+_flask_started_lock = threading.Lock()
+
 def start_flask_app():
     print(f"Starting TIDAL Flask app...", file=sys.stderr)
+
+    global _flask_started
+
+    with _flask_started_lock:
+        if _flask_started:
+            return
+        _flask_started = True
 
     from tidal_api.app import app  # import your Flask app object
 
@@ -59,3 +69,5 @@ def shutdown_flask_app():
             # If it doesn't terminate in time, force kill it
             flask_process.kill()
         print(f"TIDAL Flask app shutdown complete", file=sys.stderr)
+
+
