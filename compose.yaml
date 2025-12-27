@@ -1,6 +1,6 @@
 services:
   tidal-mcp:
-    build: .
+    build: /home/roland/git/tidal-mcp
     container_name: tidal-mcp
     profiles:
       - mcp
@@ -20,7 +20,7 @@ services:
     command: ["npx", "-y", "supergateway", "--stdio", "uv run python mcp_server/server.py", "--port", "6015"]
 
   tidal-auth:
-    build: .
+    build: /home/roland/git/tidal-mcp
     container_name: tidal-auth
     profiles:
       - auth
