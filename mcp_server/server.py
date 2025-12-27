@@ -3,55 +3,13 @@ import requests
 import atexit
 import threading
 
-_flask_thread = None
-_flask_lock = threading.Lock()
-
 from typing import Optional, List
-
-from utils import start_flask_app, shutdown_flask_app, FLASK_APP_URL, FLASK_PORT, FLASK_EXTERNAL_URL
 
 # Print the port being used for debugging
 print(f"TIDAL MCP starting...")
 
 # Create an MCP server
 mcp = FastMCP("TIDAL MCP")
-
-# Start the Flask app when this script is loaded
-#print("MCP server module is being loaded. Starting Flask app...")
-#start_flask_app()
-
-# Register the shutdown function to be called when the MCP server exits
-#atexit.register(shutdown_flask_app)
-
-@mcp.tool()
-def tidal_login() -> dict:
-    global _flask_thread
-
-    try:
-        with _flask_lock:
-            if _flask_thread is None or not _flask_thread.is_alive():
-                _flask_thread = threading.Thread(
-                    target=start_flask_app,
-                    daemon=True
-                )
-                _flask_thread.start()
-
-        return {
-            "content": [{
-                "type": "text",
-                "text": f"Please open {FLASK_EXTERNAL_URL}/login to authenticate with TIDAL."
-            }],
-            "isError": False
-        }
-
-    except Exception as e:
-        return {
-            "content": [{
-                "type": "text",
-                "text": f"Failed to start TIDAL authentication service: {str(e)}"
-            }],
-            "isError": True
-        }
     
 @mcp.tool()
 def get_favorite_tracks(limit: int = 20) -> dict:
