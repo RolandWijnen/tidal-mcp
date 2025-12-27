@@ -7,9 +7,10 @@ FROM python:3.11-slim
 # System dependencies
 # -------------------------------
 RUN apt-get update && apt-get install -y \
-    git \
-    ca-certificates \
     curl \
+    ca-certificates \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
 # -------------------------------
@@ -23,12 +24,12 @@ RUN pip install --no-cache-dir uv
 WORKDIR /app
 
 # -------------------------------
-# Clone your fork
+# Copy local code into container
 # -------------------------------
-RUN git clone https://github.com/RolandWijnen/tidal-mcp.git .
+COPY . /app
 
 # -------------------------------
-# Install dependencies (NO venv)
+# Install Python dependencies (NO venv)
 # -------------------------------
 RUN uv pip install --system --editable .
 
@@ -38,7 +39,7 @@ RUN uv pip install --system --editable .
 ENV PYTHONUNBUFFERED=1
 
 # -------------------------------
-# Expose ports
+# Expose MCP port
 # -------------------------------
 EXPOSE 6015
 
