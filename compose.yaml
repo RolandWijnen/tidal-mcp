@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   tidal-mcp:
     build: .
@@ -7,16 +9,17 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     volumes:
-      - ./tidal-data:/root/.config  # persist any config/cache here
+      - ./tidal-data:/root/.config
     stdin_open: true
     tty: true
     restart: unless-stopped
     networks:
       - mcpnet
     ports:
-      - "6015:6015"  # MCP Supergateway port
+      - "6015:6015"
     depends_on:
       - tidal-auth
+    command: ["npx", "-y", "supergateway", "--stdio", "uv run python mcp_server/server.py", "--port", "6015"]
 
   tidal-auth:
     build: .
@@ -28,14 +31,12 @@ services:
     volumes:
       - ./tidal-data/config:/root/.config
       - ./tidal-data/cache:/root/.cache
-    entrypoint:
-      - python
-      - /app/auth.py
     stdin_open: true
     tty: true
     restart: "no"
     networks:
       - mcpnet
+    command: ["python", "/app/auth.py"]
 
 networks:
   mcpnet:
