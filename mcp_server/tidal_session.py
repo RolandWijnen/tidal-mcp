@@ -13,13 +13,18 @@ def get_session() -> tidalapi.Session:
     with _lock:
         if _session is None:
             session = tidalapi.Session()
+
+            if not SESSION_FILE.exists():
+                raise RuntimeError(
+                    "TIDAL is not authenticated.\n"
+                    "Run:\n"
+                    "  docker compose run --rm tidal-mcp python mcp_server/login.py"
+                )
+
             session.load_session_from_file(SESSION_FILE)
 
-            if not session.check_login():
-                raise RuntimeError(
-                    "TIDAL session not authenticated. "
-                    "Run `docker compose --profile auth run --rm tidal-auth` first."
-                )
+            if not session.user:
+                raise RuntimeError("TIDAL session file exists but is invalid.")
 
             _session = session
 
