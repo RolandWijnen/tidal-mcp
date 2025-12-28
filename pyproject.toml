@@ -5,7 +5,6 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "mcp[cli]>=1.6.0",
-    "requests>=2.32.3",
     "tidalapi>=0.8.3",
 ]
 
@@ -14,4 +13,4 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["mcp_server", "tidal_api"]
+packages = ["mcp_server"]
