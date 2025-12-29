@@ -1,31 +1,23 @@
 from mcp.server.fastmcp import FastMCP
-from typing import Optional, List
-import tidalapi
+from typing import List
 import sys
+
+from mcp_server.session import get_session
 
 print("TIDAL MCP starting...", file=sys.stderr)
 
 mcp = FastMCP("TIDAL MCP")
 
 # -------------------------------------------------------------------
-# TIDAL SESSION (single source of truth)
+# Load authenticated TIDAL session (hard fail if missing)
 # -------------------------------------------------------------------
 
-def get_session() -> tidalapi.Session:
-    """
-    Loads an existing authenticated TIDAL session.
-    Assumes tidal-auth has already completed PKCE login.
-    """
-    session = tidalapi.Session()
-    logged_in = session.login_session()
-
-    if not logged_in:
-        raise RuntimeError(
-            "Not authenticated with TIDAL. "
-            "Run the tidal-auth container to login first."
-        )
-
-    return session
+try:
+    session = get_session()
+    user = session.user
+except Exception as e:
+    print(f"[FATAL] {e}", file=sys.stderr)
+    sys.exit(1)
 
 
 # Create session once at startup (hard fail if not logged in)
