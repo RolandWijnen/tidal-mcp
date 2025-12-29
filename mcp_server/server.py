@@ -2,7 +2,7 @@ from mcp.server.fastmcp import FastMCP
 from typing import List
 import sys
 
-from mcp_server.tidal_session import get_session
+from mcp_server.session import get_session
 
 print("TIDAL MCP starting...", file=sys.stderr)
 
