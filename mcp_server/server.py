@@ -2,14 +2,14 @@ from mcp.server.fastmcp import FastMCP
 from typing import List
 import sys
 
-from mcp_server.session import get_session
+from mcp_server.tidal_session import get_session
 
 print("TIDAL MCP starting...", file=sys.stderr)
 
 mcp = FastMCP("TIDAL MCP")
 
 # -------------------------------------------------------------------
-# Load authenticated TIDAL session (hard fail if missing)
+# Load authenticated TIDAL session (single source of truth)
 # -------------------------------------------------------------------
 
 try:
@@ -19,14 +19,34 @@ except Exception as e:
     print(f"[FATAL] {e}", file=sys.stderr)
     sys.exit(1)
 
+# -------------------------------------------------------------------
+# Helper functions
+# -------------------------------------------------------------------
 
-# Create session once at startup (hard fail if not logged in)
-try:
-    session = get_session()
-    user = session.user
-except Exception as e:
-    print(f"[FATAL] {e}", file=sys.stderr)
-    sys.exit(1)
+def track_to_dict(track) -> dict:
+    """Convert a tidalapi Track object to a safe serializable dict."""
+    return {
+        "id": track.id,
+        "title": track.name,
+        "artist": track.artist.name if track.artist else None,
+        "album": track.album.name if track.album else None,
+        "duration": track.duration,
+        "explicit": track.explicit,
+        "audio_quality": track.audio_quality,
+        "url": f"https://tidal.com/browse/track/{track.id}",
+    }
+
+
+def playlist_to_dict(playlist) -> dict:
+    """Convert a tidalapi Playlist object to a safe serializable dict."""
+    return {
+        "id": playlist.id,
+        "title": playlist.name,
+        "description": playlist.description,
+        "track_count": playlist.num_tracks,
+        "last_updated": playlist.last_updated,
+        "url": f"https://tidal.com/browse/playlist/{playlist.id}",
+    }
 
 # -------------------------------------------------------------------
 # TOOLS
@@ -38,29 +58,21 @@ def get_favorite_tracks(limit: int = 20) -> dict:
     Retrieves the user's favorite tracks from TIDAL.
     """
     try:
+        limit = max(1, min(limit, 100))  # basic sanity clamp
         favorites = user.favorites.tracks(limit=limit)
 
-        tracks = []
-        for track in favorites:
-            tracks.append({
-                "id": track.id,
-                "title": track.name,
-                "artist": track.artist.name,
-                "album": track.album.name,
-                "duration": track.duration,
-                "url": track.url
-            })
+        tracks = [track_to_dict(track) for track in favorites]
 
         return {
             "status": "success",
             "tracks": tracks,
-            "track_count": len(tracks)
+            "track_count": len(tracks),
         }
 
     except Exception as e:
         return {
             "status": "error",
-            "message": str(e)
+            "message": str(e),
         }
 
 
@@ -72,27 +84,18 @@ def get_user_playlists() -> dict:
     try:
         playlists = user.playlists()
 
-        result = []
-        for pl in playlists:
-            result.append({
-                "id": pl.id,
-                "title": pl.name,
-                "description": pl.description,
-                "track_count": pl.num_tracks,
-                "url": f"https://tidal.com/playlist/{pl.id}",
-                "last_updated": pl.last_updated
-            })
+        result = [playlist_to_dict(pl) for pl in playlists]
 
         return {
             "status": "success",
             "playlists": result,
-            "playlist_count": len(result)
+            "playlist_count": len(result),
         }
 
     except Exception as e:
         return {
             "status": "error",
-            "message": str(e)
+            "message": str(e),
         }
 
 
@@ -102,35 +105,24 @@ def get_playlist_tracks(playlist_id: str, limit: int = 100) -> dict:
     Retrieves tracks from a playlist.
     """
     try:
+        limit = max(1, min(limit, 500))
+
         playlist = session.playlist(playlist_id)
         items = playlist.tracks(limit=limit)
 
-        tracks = []
-        for track in items:
-            tracks.append({
-                "id": track.id,
-                "title": track.name,
-                "artist": track.artist.name,
-                "album": track.album.name,
-                "duration": track.duration,
-                "url": track.url
-            })
+        tracks = [track_to_dict(track) for track in items]
 
         return {
             "status": "success",
-            "playlist": {
-                "id": playlist.id,
-                "title": playlist.name,
-                "description": playlist.description
-            },
+            "playlist": playlist_to_dict(playlist),
             "tracks": tracks,
-            "track_count": len(tracks)
+            "track_count": len(tracks),
         }
 
     except Exception as e:
         return {
             "status": "error",
-            "message": str(e)
+            "message": str(e),
         }
 
 
@@ -138,12 +130,18 @@ def get_playlist_tracks(playlist_id: str, limit: int = 100) -> dict:
 def create_tidal_playlist(
     title: str,
     track_ids: List[str],
-    description: str = ""
+    description: str = "",
 ) -> dict:
     """
     Creates a new playlist and adds tracks to it.
     """
     try:
+        if not track_ids:
+            return {
+                "status": "error",
+                "message": "track_ids must not be empty",
+            }
+
         playlist = user.create_playlist(title, description)
         playlist.add(track_ids)
 
@@ -152,15 +150,15 @@ def create_tidal_playlist(
             "playlist": {
                 "id": playlist.id,
                 "title": playlist.name,
-                "url": f"https://tidal.com/playlist/{playlist.id}",
-                "track_count": len(track_ids)
-            }
+                "track_count": len(track_ids),
+                "url": f"https://tidal.com/browse/playlist/{playlist.id}",
+            },
         }
 
     except Exception as e:
         return {
             "status": "error",
-            "message": str(e)
+            "message": str(e),
         }
 
 
@@ -175,15 +173,14 @@ def delete_tidal_playlist(playlist_id: str) -> dict:
 
         return {
             "status": "success",
-            "message": f"Playlist {playlist_id} deleted"
+            "message": f"Playlist {playlist_id} deleted",
         }
 
     except Exception as e:
         return {
             "status": "error",
-            "message": str(e)
+            "message": str(e),
         }
-
 
 # -------------------------------------------------------------------
 # MCP ENTRYPOINT
